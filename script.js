@@ -8,15 +8,22 @@ document.addEventListener("mousemove",function(e){
     MOUSEX = e.clientX
     MOUSEY = e.clientY
 })
+document.addEventListener("click",function(e){
+    player.shoot()
+})
 
 var canv = document.getElementById("canvasGame")
 var ctx = canv.getContext("2d")
 var keys = {}
+var bullets = []
 var player
-var MOUSEX = 0
-var MOUSEY = 0
+var MOUSEX
+var MOUSEY
 var FPS = 60
 var VELOCITY = 5
+var BULLET_SPEED = 10
+var angle
+
 
 function setup(){
     player = new Player()
@@ -35,12 +42,23 @@ function move(){
 }
 
 function draw(){
+    angle = Math.atan2(MOUSEY-player.getY,MOUSEX-player.getX) 
+
     ctx.fillStyle = "white"
     ctx.fillRect(0,0,canv.width,canv.height)
 
     move()
+    
     player.draw()
 
+    for(let i = 0; i < bullets.length; i++){
+        bullets[i].draw()
+        let bullet = bullets[i]
+        if(bullet.position.x > canv.width || bullet.position.y > canv.height){
+            bullets.splice(i,1)
+        }
+    }
+    console.log(bullets.length)
 }
 
 setup()
