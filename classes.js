@@ -6,12 +6,12 @@ class Player{
         this.weapon = new Weapon()
     }
 
-    get getX(){
-        return this.x
+    get getPos(){
+        return {x:this.x,y:this.y}
     }
 
-    get getY(){
-        return this.y
+    get getCooldown(){
+        return this.cooldown
     }
 
     move(valX,valY){
@@ -45,15 +45,21 @@ class Weapon{
     constructor(){
         this.width = 50
         this.height = 10
+        this.cooldownWeapon = 0
+        this.cooldownWeaponReady = 10
     }
 
     shoot(){
-        bullets.push(new Bullet(player.getX,player.getY))
+        this.cooldownWeapon++
+        if (this.cooldownWeapon >= this.cooldownWeaponReady){
+            bullets.push(new Bullet(player.getPos.x,player.getPos.y))
+            this.cooldownWeapon = 0
+        }
     }
 
     draw(){
         ctx.save()
-        ctx.translate(player.getX,player.getY)
+        ctx.translate(player.getPos.x,player.getPos.y)
         ctx.rotate(angle)
         ctx.fillStyle = "red"
         ctx.fillRect(0,-this.height/2,this.width,this.height)
@@ -66,21 +72,28 @@ class Bullet{
         this.x = 0
         this.y = 0
         this.r = 5
-        this.angleL = Math.atan2(MOUSEY-player.getY,MOUSEX-player.getX)
-        this.translateX = player.getX
-        this.translateY = player.getY
+        this.angleL = Math.atan2(MOUSEY-player.getPos.y,MOUSEX-player.getPos.x)
+        this.translateX = player.getPos.x
+        this.translateY = player.getPos.y
+        this.damage = 10
     }
 
     get position(){
         return {x: this.x, y:this.y}
     }
 
+    get getDamage(){
+        return this.damage
+    }
+
     draw(){
+        this.damage *= .99
+
         ctx.save()
         ctx.translate(this.translateX,this.translateY)
         ctx.rotate(this.angleL)
         ctx.beginPath()
-        ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
+        ctx.arc(this.x+50,this.y,this.r*=.99,0,Math.PI*2)
         ctx.fillStyle = "black"
         ctx.fill()
         ctx.restore()
@@ -88,3 +101,19 @@ class Bullet{
         this.x += BULLET_SPEED
     }
 }
+
+// class Enemy{
+//     constructor(){
+//         this.x = Math.floor(Math.random() * canv.width) + 0 
+//         this.y = Math.floor(Math.random() * canv.height) + 0
+//         this.r = 20
+//         this.translateX = canv.width/2
+//         this.translateY = canv.height/2
+//     }
+
+//     draw(){
+//         ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
+//         ctx.fillStyle = "black"
+//         ctx.fill()
+//     }
+// }
