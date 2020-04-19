@@ -26,6 +26,8 @@
     left: 140px;
     border-radius: 50px;
     border: solid black;
+    font: bold 15px Arial;
+
 }
 .button:hover{
     background: yellowgreen;
@@ -42,4 +44,37 @@
 }
 #button3{
     top: 190px;
+}
+#button4{
+    top: 320px;
+}
+#button5{
+    width: 30px;
+    top: 430px;
+    left: 90px;
+}
+#button6{
+    width: 30px;
+    top: 430px;
+    left: 160px;
+}
+#button7{
+    width: 50px;
+    top: 470px;
+    left: 90px;
+}
+#button8{
+    width: 50px;
+    top: 470px;
+    left: 142px;
+}
+#button9{
+    width: 50px;
+    top: 510px;
+    left: 90px;
+}
+#button10{
+    width: 50px;
+    top: 510px;
+    left: 142px;
 }

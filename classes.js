@@ -2,40 +2,38 @@
 class Player{
     constructor(nome){
         this.nome = nome
-        this.x = canv.width/2
-        this.y = canv.height/2
+        this.position = {x:canv.width/2,y:canv.height/2}
         this.r = 20
         this.life = 100
-        this.money = 0
+        this.money = 10000
         this.kills = 0
         this.level = 0
+        this.tokens = 0
         this.weapon = new Weapon()
         this.healthbar = null
-    }
-
-    get getPos(){
-        return {x:this.x,y:this.y}
-    }
-
-    get getCooldown(){
-        return this.cooldown
-    }
-
-    addMoney(money_){
-        this.money += money_
+        this.velocity = VELOCITY
+        this.sound = new Sound()
     }
 
     move(valX,valY){
-        this.x += valX
-        this.y += valY
+        let condition = false
 
-        this.x = this.x < 0 ? this.x = 0 : this.x
-        this.x = this.x > canv.width ? this.x = canv.width : this.x
+        this.position.x += valX
+        this.position.y += valY
 
-        this.y = this.y < 0 ? this.y = 0 : this.y
-        this.y = this.y > canv.height ? this.y = canv.height : this.y
+        if(this.position.x < 0){
+            this.position.x = 0
+        } else if (this.position.x > canv.width){
+            this.position.x = canv.width
+        } else if(this.position.y < 0){
+            this.position.y = 0
+        } else if (this.position.y > canv.height){
+            this.position.y = canv.height
+        } else {
+            condition = true
+        }
         
-        if(this.healthbar != null){
+        if(this.healthbar != null && condition){
             this.healthbar.move(valX,valY)
         }
     }
@@ -44,9 +42,27 @@ class Player{
         this.weapon.shoot()
     }
 
+    useToken(type){
+        if(type == "token"){
+            token.buy()
+        } else if(player.tokens > 0){
+            if(type == "damage"){
+                this.weapon.weaponDamage *= 1.05
+            } else if(type == "pSpeed"){
+                this.velocity *= 1.005
+            } else if(type == "bSpeed"){
+                this.weapon.weaponBulletSpeed *= 1.005
+            } else if(type == "cooldown"){
+                this.weapon.weaponFirerate *= .985
+            }
+            this.tokens--
+            this.sound.tokenSound()
+        }
+    }
+
     draw(){
         ctx.beginPath()
-        ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
+        ctx.arc(this.position.x,this.position.y,this.r,0,Math.PI*2)
         ctx.fillStyle = "black"
         ctx.fill()
 
@@ -64,20 +80,24 @@ class Weapon{
         this.width = 50
         this.height = 10
         this.cooldownWeapon = 0
-        this.cooldownWeaponReady = WEAPON_COOLDOWN
+        this.weaponFirerate = WEAPON_COOLDOWN
+        this.weaponDamage = BULLET_DAMAGE
+        this.weaponBulletSpeed = BULLET_SPEED
+        this.sound = new Sound()
     }
 
     shoot(){
         this.cooldownWeapon++
-        if (this.cooldownWeapon >= this.cooldownWeaponReady){
-            bullets.push(new Bullet(player.getPos.x,player.getPos.y))
+        if (this.cooldownWeapon >= this.weaponFirerate){
+            bullets.push(new Bullet(this.weaponDamage,this.weaponBulletSpeed))
             this.cooldownWeapon = 0
+            this.sound.bulletSound()
         }
     }
 
     draw(){
         ctx.save()
-        ctx.translate(player.getPos.x,player.getPos.y)
+        ctx.translate(player.position.x,player.position.y)
         ctx.rotate(angle)
         ctx.fillStyle = "red"
         ctx.fillRect(0,-this.height/2,this.width,this.height)
@@ -86,27 +106,19 @@ class Weapon{
 }
 
 class Bullet{
-    constructor(){
-        this.x = 0
-        this.y = 0
+    constructor(damage,speed){
+        this.position = {x:0,y:0}
         this.r = 5
-        this.angleL = Math.atan2(MOUSEY-player.getPos.y,MOUSEX-player.getPos.x)
-        this.translateX = player.getPos.x
-        this.translateY = player.getPos.y
-        this.damage = BULLET_DAMAGE
-    }
-
-    get position(){
-        return {x: this.x, y:this.y}
-    }
-
-    get getStats(){
-        return this.r
+        this.angleL = Math.atan2(MOUSEY-player.position.y,MOUSEX-player.position.x)
+        this.translateX = player.position.x
+        this.translateY = player.position.y
+        this.damage = damage
+        this.speed = speed
     }
     
     get bulletXY(){
-        let dx = canv.width-(canv.width-this.x)
-        let dy = canv.height-(canv.height-this.y)
+        let dx = canv.width-(canv.width-this.position.x)
+        let dy = canv.height-(canv.height-this.position.y)
         let length = Math.sqrt(dx*dx+dy*dy)
         let bulletAngle = Math.atan2(dy,dx)
         let screenX = this.translateX+length*Math.cos(bulletAngle+this.angleL)
@@ -121,32 +133,31 @@ class Bullet{
         ctx.translate(this.translateX,this.translateY)
         ctx.rotate(this.angleL)
         ctx.beginPath()
-        ctx.arc(this.x+50,this.y,this.r*=.99,0,Math.PI*2)
+        ctx.arc(this.position.x+50,this.position.y,this.r*=.99,0,Math.PI*2)
         ctx.fillStyle = "black"
         ctx.fill()
         ctx.restore()
 
-        this.x += BULLET_SPEED
+        this.position.x += this.speed
     }
 }
 
 class Enemy{
     constructor(life){
         this.life = life
-        this.x = Math.floor(Math.random() * canv.width) + 0 
-        this.y = Math.floor(Math.random() * canv.height) + 0
+        this.position = {x:Math.floor(Math.random() * canv.width) + 0,y:Math.floor(Math.random() * canv.height) + 0}
         this.r = 20
         this.damage = 1.5
         this.translateX = canv.width/2
         this.translateY = canv.height/2
-        this.healthbar = new HealthBar(this.x-(this.r*1.25),this.y+this.r+5,false)
+        this.healthbar = new HealthBar(this.position.x-(this.r*1.25),this.position.y+this.r+5,false)
     }
 
     checkCollisionBullet(bulletX,bulletY,bullet_,enemy_){
-        if((Math.sqrt(Math.pow(bulletX-this.x,2) + Math.pow(bulletY-this.y,2))) <= this.r+bullet_.r){
+        if((Math.sqrt(Math.pow(bulletX-this.position.x,2) + Math.pow(bulletY-this.position.y,2))) <= this.r+bullet_.r){
             this.life -= bullet_.damage
             if(this.life <= 0){
-                player.addMoney(Math.random() * 0.7 + 0.3)
+                player.money += (Math.random() * 0.7 + 0.3)
                 player.kills++
                 return {hit:true,kill:true}
             }
@@ -160,9 +171,9 @@ class Enemy{
     }
 
     checkCollisionPlayer(enemy_){
-        if((Math.sqrt(Math.pow(this.x-player.x,2) + Math.pow(this.y-player.y,2))) <= this.r*2){
+        if((Math.sqrt(Math.pow(this.position.x-player.position.x,2) + Math.pow(this.position.y-player.position.y,2))) <= this.r*2){
             if(player.healthbar == null){
-                player.healthbar = new HealthBar(player.x-(player.r*1.25),player.y+player.r+5,true)
+                player.healthbar = new HealthBar(player.position.x-(player.r*1.25),player.position.y+player.r+5,true)
             } 
             player.life -= this.damage
             let size = (player.healthbar.sizeBar.w*player.life-enemy_.damage)/PLAYER_LIFE
@@ -177,7 +188,7 @@ class Enemy{
 
     draw(){
         ctx.beginPath()
-        ctx.arc(this.x,this.y,this.r,0,Math.PI*2)
+        ctx.arc(this.position.x,this.position.y,this.r,0,Math.PI*2)
         ctx.fillStyle = "black"
         ctx.fill()
 
@@ -213,3 +224,83 @@ class HealthBar{
         ctx.fill()
     }
 }
+
+class Token{
+    constructor(){
+        this.price = 10
+        this.sound = new Sound()
+    }
+
+    buy(){
+        if(player.money >= this.price){
+            player.money -= this.price
+            player.tokens++
+            this.price *= 1.2
+            this.sound.tokenSound()
+            return true
+        } else {
+            return false
+        }
+    }
+}
+
+class Sound{
+    constructor(){
+        this.bulletSounds = ["./sounds/laser1.wav","./sounds/laser4.wav","./sounds/laser5.wav","./sounds/laser7.wav"]
+        this.tokenSounds = ["./sounds/token.ogg"]
+        this.musicSounds = ["./sounds/soundtrack0.mp3","./sounds/soundtrack1.mp3","./sounds/soundtrack2.mp3","./sounds/soundtrack3.mp3","./sounds/soundtrack4.mp3","./sounds/soundtrack5.mp3"]
+        this.sound = null
+        this.musicSelector = 0
+    }
+
+    changeSelector(type){
+        if(type == "-"){
+            if(this.musicSelector == 0){
+                this.musicSelector = this.musicSounds.length-1
+            } else {
+                this.musicSelector--
+            }
+            song.musicSound()
+        } else if(type == "+"){
+            if(this.musicSelector == this.musicSounds.length-1){
+                this.musicSelector = 0
+            } else {
+                this.musicSelector++
+            }
+            song.musicSound()
+        } else if(type == "off"){
+            if(this.sound != null){
+                this.sound.pause()
+                this.sound = null
+            }
+        } else {
+            if(this.sound == null){
+                this.sound = new Audio(this.musicSounds[this.musicSelector])
+                this.sound.play()
+            }
+        }
+    }
+
+    tokenSound(){
+        if(soundState){
+            this.sound = new Audio(this.tokenSounds[0])
+            this.sound.play()
+        }
+    }
+
+    bulletSound(){
+        if(soundState){
+            this.sound = new Audio(this.bulletSounds[(Math.floor(Math.random() * 4) + 0)])
+            this.sound.play()
+        }
+    }
+
+    musicSound(){
+        if(this.sound != null){
+            this.sound.pause()
+            this.sound = new Audio(this.musicSounds[this.musicSelector])
+            this.sound.play()
+        }
+    }
+}
+
