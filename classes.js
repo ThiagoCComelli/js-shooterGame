@@ -276,6 +276,7 @@ class Sound{
         } else {
             if(this.sound == null){
                 this.sound = new Audio(this.musicSounds[this.musicSelector])
+                this.sound.loop = true
                 this.sound.play()
             }
         }
@@ -299,6 +300,7 @@ class Sound{
         if(this.sound != null){
             this.sound.pause()
             this.sound = new Audio(this.musicSounds[this.musicSelector])
+            this.sound.loop = true
             this.sound.play()
         }
     }
