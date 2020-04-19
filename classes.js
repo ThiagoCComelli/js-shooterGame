@@ -5,7 +5,7 @@ class Player{
         this.position = {x:canv.width/2,y:canv.height/2}
         this.r = 20
         this.life = 100
-        this.money = 10000
+        this.money = 100
         this.kills = 0
         this.level = 0
         this.tokens = 0
